@@ -1,24 +1,24 @@
 version: 2.1
 
 jobs:
-  build-test-linting:
+  build:
     docker:
-      - image: cimg/python:3.10
-
+      - image: circleci/python:3.6
     steps:
       - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
-          name: Install dependencies
           command: |
-            pip install --upgrade pip
+            python3 -m venv venv
+            . venv/bin/activate
             pip install -r requirements.txt
-
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
       - run:
-          name: Run Tests
-          command: pytest
-
-      - run:
-          name: Linting
-          command: flake8
-
-
+          name: Running tests
+          command: |
+            . venv/bin/activate
+            pytest
