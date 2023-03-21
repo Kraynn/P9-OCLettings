@@ -2,7 +2,7 @@
   "AWSEBDockerrunVersion": 2,
   "containerDefinitions": [
     {
-      "name": "django",
+      "name": "app",
       "image": "kraynn/ocl:latest",
       "essential": true,
       "memory": 256,
