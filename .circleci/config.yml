@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  aws-ecr: circleci/aws-ecr@8.2.1
+
 jobs:
   build-test-linting:
     docker:
@@ -40,29 +43,6 @@ jobs:
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
 
-  deploy-to-aws:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - run:
-          name: Install AWS CLI
-          command: |
-            sudo apt-get -y -qq update
-            sudo apt-get install python3-pip python3-dev build-essential
-            sudo pip3 install awsebcli
-      - run:
-          name: Configure AWS credentials
-          command: |
-            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-            aws configure set default.region $AWS_REGION
-
-      - run:
-          name: Create and deploy Elastic Beanstalk environment
-          command: |
-            eb init -p python-3.10 OCL --region $AWS_REGION --platform "64bit Amazon Linux 2 v5.4.3 running Python 3.10"
-            eb create P9-OCLettings-OCL --single --cname P9-OCLettings-OCL --instance-type t2.micro
-            eb deploy
 
 workflows:
   master:
@@ -71,10 +51,8 @@ workflows:
       - build-docker:
           requires:
             - build-test-linting
-      - deploy-to-aws:
-          requires:
-            - build-docker
-          filters:
-            branches:
-              only:
-                - master
+      - aws-ecr/build-and-push-image: # Use the pre-defined `build-and-push-image` job
+          region: eu-north-1
+          repo: public.ecr.aws/r7q6p7l5/oclettings
+          profile-name: kraynn
+
