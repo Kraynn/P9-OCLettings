@@ -1,0 +1,24 @@
+version: 2.1
+
+jobs:
+  build-test-linting:
+    docker:
+      - image: cimg/python:3.10
+
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+      - run:
+          name: Run Tests
+          command: pytest
+
+      - run:
+          name: Linting
+          command: flake8
+
+
