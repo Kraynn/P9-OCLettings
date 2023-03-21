@@ -32,7 +32,6 @@ jobs:
           password: $DOCKER_PASSWORD
     steps:
       - checkout
-
       - setup_remote_docker:
           version: 20.10.14
           docker_layer_caching: true
@@ -42,7 +41,6 @@ jobs:
           docker build -t $DOCKER_REPO:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
-
 
 workflows:
   master:
@@ -55,4 +53,8 @@ workflows:
           region: eu-north-1
           repo: public.ecr.aws/r7q6p7l5/oclettings
           profile-name: kraynn
+          requires:
+            - build-test-linting
+
+
 
