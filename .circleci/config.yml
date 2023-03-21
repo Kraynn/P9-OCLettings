@@ -47,9 +47,9 @@ jobs:
       - run:
           name: Install AWS CLI
           command: |
-            sudo apt-get update && \
-            sudo apt-get install -y awscli
-
+            sudo apt-get -y -qq update
+            sudo apt-get install python3-pip python3-dev build-essential
+            sudo pip3 install awsebcli
       - run:
           name: Configure AWS credentials
           command: |
