@@ -26,7 +26,7 @@ jobs:
       - image: cimg/python:3.10
         auth:
           username: $DOCKER_USERNAME
-          password: $DOCKERHUB_PASSWORD 
+          password: $DOCKER_PASSWORD
     steps:
       - checkout
 
@@ -40,10 +40,41 @@ jobs:
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
 
+  deploy-to-aws:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt-get update && \
+            sudo apt-get install -y awscli
+
+      - run:
+          name: Configure AWS credentials
+          command: |
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set default.region $AWS_REGION
+
+      - run:
+          name: Create and deploy Elastic Beanstalk environment
+          command: |
+            eb init -p python-3.10 OCL --region $AWS_REGION --platform "64bit Amazon Linux 2 v5.4.3 running Python 3.10"
+            eb create OCL --single --cname Ocl-env.eba-dgzkbf38.eu-north-1.elasticbeanstalk.com --instance-type t2.micro
+            eb deploy
+
 workflows:
-  main:
+  deploy:
     jobs:
       - build-test-linting
       - build-docker:
           requires:
             - build-test-linting
+      - deploy-to-aws:
+          requires:
+            - build-docker
+          filters:
+            branches:
+              only:
+                - master
