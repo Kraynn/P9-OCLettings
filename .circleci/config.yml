@@ -41,23 +41,28 @@ jobs:
           docker push $DOCKER_REPO:$TAG
 
   deploy-to-aws:
-    working_directory: ~/app
     docker:
-      - image: cimg/python:3.10
+      - image: amazon/aws-cli
     steps:
-      - checkout
-
       - run:
-          name: Installing deployment dependencies
-          working_directory: /
+          name: Install AWS CLI
           command: |
-            sudo apt-get -y -qq update
-            sudo apt-get install python3-pip python3-dev build-essential
-            sudo pip3 install awsebcli
+            sudo apt-get update && \
+            sudo apt-get install -y awscli
 
       - run:
-          name: Deploying
-          command: eb deploy $CIRCLE_BRANCH-OCL
+          name: Configure AWS credentials
+          command: |
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set default.region $AWS_REGION
+
+      - run:
+          name: Create and deploy Elastic Beanstalk environment
+          command: |
+            eb init -p python-3.10 OCL --region $AWS_REGION --platform "64bit Amazon Linux 2 v5.4.3 running Python 3.10"
+            eb create P9-OCLettings-OCL --single --cname P9-OCLettings-OCL --instance-type t2.micro
+            eb deploy
 
 workflows:
   master:
