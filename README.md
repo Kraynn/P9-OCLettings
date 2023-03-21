@@ -75,3 +75,8 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
+
+****
+
+Docker :
+> docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51 
