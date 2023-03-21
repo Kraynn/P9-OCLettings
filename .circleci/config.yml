@@ -20,25 +20,8 @@ jobs:
           name: Linting
           command: flake8
 
-  build-docker:
-    docker:
-      - image: cimg/python:3.10
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Login to Docker Hub
-          command: echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-      - run:
-          name: Build and push Docker Image
-          command: |
-            docker build --tag $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1 .
-            docker push $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1
 
 workflows:
   main:
     jobs:
       - build-test-linting
-      - build-docker:
-          requires:
-            - build-test-linting
