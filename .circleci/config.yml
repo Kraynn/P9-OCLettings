@@ -1,10 +1,12 @@
 version: 2.1
 
+orbs:
+  aws-ecr: circleci/aws-ecr@8.2.1
+
 jobs:
-  build-test-linting:
+  test-linting:
     docker:
       - image: cimg/python:3.10
-
     steps:
       - checkout
       - run:
@@ -12,16 +14,14 @@ jobs:
           command: |
             pip install --upgrade pip
             pip install -r requirements.txt
-
       - run:
           name: Run Tests
           command: pytest
-
       - run:
           name: Linting
           command: flake8
 
-  build-docker:
+  build:
     docker:
       - image: cimg/python:3.10
         auth:
@@ -29,51 +29,42 @@ jobs:
           password: $DOCKER_PASSWORD
     steps:
       - checkout
-
       - setup_remote_docker:
           version: 20.10.14
           docker_layer_caching: true
-
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
           docker build -t $DOCKER_REPO:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
-
-  deploy-to-aws:
+    
+  deploy:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/python:3.10
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
     steps:
-      - run:
-          name: Install AWS CLI
-          command: |
-            apt-get update && \
-            apt-get install -y awscli
+        - chekout
+        - aws-s3/sync:
+          from: bucket
+          to: 's3://oclettings/'
+          arguments: | 
+            --acl public-read \
+            --cache-control "max-age=86400"
+          overwrite: true         
 
-      - run:
-          name: Configure AWS credentials
-          command: |
-            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-            aws configure set default.region $AWS_REGION
-
-      - run:
-          name: Create and deploy Elastic Beanstalk environment
-          command: |
-            eb init -p python-3.10 OCL --region $AWS_REGION --platform "64bit Amazon Linux 2 v5.4.3 running Python 3.10"
-            eb create OCL --single --cname Ocl-env.eba-dgzkbf38.eu-north-1.elasticbeanstalk.com --instance-type t2.micro
-            eb deploy
 
 workflows:
-  deploy:
+  test-build-deploy:
     jobs:
-      - build-test-linting
-      - build-docker:
+      - test-linting
+      - build:
+        requires:
+          - test-linting
+      - deploy:
           requires:
-            - build-test-linting
-      - deploy-to-aws:
-          requires:
-            - build-docker
+            - build
           filters:
             branches:
               only:
