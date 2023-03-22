@@ -38,12 +38,7 @@ jobs:
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
     
-    deploy-to-aws:
-    docker:
-      - image: cimg/python:3.10
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
+  deploy-to-aws:
     steps:
       - checkout
       - setup_remote_docker:
