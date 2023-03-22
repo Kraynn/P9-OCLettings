@@ -1,14 +1,10 @@
 version: 2.1
-
 orbs:
   aws-ecr: circleci/aws-ecr@8.2.1
-
-
 jobs:
   build-test-linting:
     docker:
       - image: cimg/python:3.10
-
     steps:
       - checkout
       - run:
@@ -16,15 +12,12 @@ jobs:
           command: |
             pip install --upgrade pip
             pip install -r requirements.txt
-
       - run:
           name: Run Tests
           command: pytest
-
       - run:
           name: Linting
           command: flake8
-
   build-docker:
     docker:
       - image: cimg/python:3.10
@@ -41,36 +34,27 @@ jobs:
           docker build -t $DOCKER_REPO:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
-
-  deploy-to-aws:
+ 
+  build-deploy:
+    machine:
+      image: "ubuntu-2004:current"
     steps:
       - checkout
-      - setup_remote_docker
       - run:
-          name: Pull Docker Image 
+          name: Installing AWS CLI
           command: |
-            # echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-            # docker pull $DOCKER_REPO:$CIRCLE_SHA1
-      - aws-s3/sync:
-          from: bucket
-          to: 's3://oclettings/'
-          arguments: | 
-            --acl public-read \
-            --cache-control "max-age=86400"
-          overwrite: true  
+            sudo apt-get update
+            sudo apt install python3-pip
+            sudo pip3 install awsebcli --upgrapde
+      - run: cd ./oc_lettings_site npm install && npm run build
+      - run: aws s3 sync ./oc_lettings_site/build s3://oclettings
 
 
 workflows:
-  main:
+  master:
     jobs:
       - build-test-linting
       - build-docker:
           requires:
             - build-test-linting
-      - deploy-to-aws:
-          requires:
-            - build-docker
-          filters:
-            branches:
-              only:
-                - main
+      - build-deploy
