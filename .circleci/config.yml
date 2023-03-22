@@ -37,35 +37,34 @@ jobs:
           docker build -t $DOCKER_REPO:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
-
-  deploy-to-aws:
+    
+  deploy:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/python:3.10
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
     steps:
-      - run:
-          name: Install AWS CLI
-          command: |
-            apt-get update && \
-            apt-get install -y awscli
-
-      - run:
-          name: Configure AWS credentials
-          command: |
-            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-            aws configure set default.region $AWS_REGION
+        - chekout
+        - aws-s3/sync:
+          from: bucket
+          to: 's3://oclettings/'
+          arguments: | 
+            --acl public-read \
+            --cache-control "max-age=86400"
+          overwrite: true         
 
 
 workflows:
-  deploy:
+  test-build-deploy:
     jobs:
-      - build-test-linting
-      - build-docker:
+      - test-linting
+      - build:
+        requires:
+          - test-linting
+      - deploy:
           requires:
-            - build-test-linting
-      - deploy-to-aws:
-          requires:
-            - build-docker
+            - build
           filters:
             branches:
               only:
