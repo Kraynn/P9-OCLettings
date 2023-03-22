@@ -3,10 +3,12 @@ version: 2.1
 orbs:
   aws-ecr: circleci/aws-ecr@8.2.1
 
+
 jobs:
   build-test-linting:
     docker:
       - image: cimg/python:3.10
+
     steps:
       - checkout
       - run:
@@ -14,9 +16,11 @@ jobs:
           command: |
             pip install --upgrade pip
             pip install -r requirements.txt
+
       - run:
           name: Run Tests
           command: pytest
+
       - run:
           name: Linting
           command: flake8
@@ -37,35 +41,36 @@ jobs:
           docker build -t $DOCKER_REPO:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
-    
+
   deploy-to-aws:
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.14
-          docker_layer_caching: true
-      - run: |
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker pull $DOCKER_REPO:$TAG
+      - setup_remote_docker
+      - run:
+          name: Pull Docker Image 
+          command: |
+            # echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+            # docker pull $DOCKER_REPO:$CIRCLE_SHA1
       - aws-s3/sync:
           from: bucket
           to: 's3://oclettings/'
           arguments: | 
             --acl public-read \
             --cache-control "max-age=86400"
-          overwrite: true         
+          overwrite: true  
 
 
 workflows:
+  main:
     jobs:
       - build-test-linting
       - build-docker:
-        requires:
-          - build-test-linting
+          requires:
+            - build-test-linting
       - deploy-to-aws:
           requires:
             - build-docker
           filters:
             branches:
               only:
-                - master
+                - main
