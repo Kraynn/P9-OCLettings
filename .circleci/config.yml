@@ -21,7 +21,7 @@ jobs:
           name: Linting
           command: flake8
 
-  build-deploy:
+  build-docker:
     docker:
       - image: cimg/python:3.10
         auth:
@@ -38,33 +38,38 @@ jobs:
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
     
-    deploy:
-      docker:
-        - image: cimg/python:3.10
-          auth:
-            username: $DOCKER_USERNAME
-            password: $DOCKER_PASSWORD
-      steps:
-          - chekout
-          - aws-s3/sync:
-            from: bucket
-            to: 's3://oclettings/'
-            arguments: | 
-              --acl public-read \
-              --cache-control "max-age=86400"
-            overwrite: true         
+    deploy-to-aws:
+    docker:
+      - image: cimg/python:3.10
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+      - run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker pull $DOCKER_REPO:$TAG
+        - aws-s3/sync:
+          from: bucket
+          to: 's3://oclettings/'
+          arguments: | 
+            --acl public-read \
+            --cache-control "max-age=86400"
+          overwrite: true         
 
 
 workflows:
-  test-build-deploy:
     jobs:
-      - test-linting
-      - build:
+      - build-test-linting
+      - build-docker:
         requires:
           - build-test-linting
-      - deploy:
+      - deploy-to-aws:
           requires:
-            - build
+            - build-docker
           filters:
             branches:
               only:
