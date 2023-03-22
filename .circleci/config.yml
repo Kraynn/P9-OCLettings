@@ -27,7 +27,6 @@ workflows:
       - build-test-linting
       - aws-ecr/build-and-push-image:
           repo: oclus
-          tag: "latest, v0.1.${CIRCLE_BUILD_NUM}"
           dockerfile: Dockerfile
           path: .
           requires:
