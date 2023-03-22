@@ -39,20 +39,20 @@ jobs:
           docker push $DOCKER_REPO:$TAG
     
     deploy:
-    docker:
-      - image: cimg/python:3.10
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
-    steps:
-        - chekout
-        - aws-s3/sync:
-          from: bucket
-          to: 's3://oclettings/'
-          arguments: | 
-            --acl public-read \
-            --cache-control "max-age=86400"
-          overwrite: true         
+      docker:
+        - image: cimg/python:3.10
+          auth:
+            username: $DOCKER_USERNAME
+            password: $DOCKER_PASSWORD
+      steps:
+          - chekout
+          - aws-s3/sync:
+            from: bucket
+            to: 's3://oclettings/'
+            arguments: | 
+              --acl public-read \
+              --cache-control "max-age=86400"
+            overwrite: true         
 
 
 workflows:
