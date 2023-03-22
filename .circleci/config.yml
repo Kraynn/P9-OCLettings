@@ -4,7 +4,7 @@ orbs:
   aws-ecr: circleci/aws-ecr@8.2.1
 
 jobs:
-  test-linting:
+  build-test-linting:
     docker:
       - image: cimg/python:3.10
     steps:
@@ -21,7 +21,7 @@ jobs:
           name: Linting
           command: flake8
 
-  build:
+  build-deploy:
     docker:
       - image: cimg/python:3.10
         auth:
@@ -61,7 +61,7 @@ workflows:
       - test-linting
       - build:
         requires:
-          - test-linting
+          - build-test-linting
       - deploy:
           requires:
             - build
