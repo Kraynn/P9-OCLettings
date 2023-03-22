@@ -41,6 +41,22 @@ jobs:
           docker build -t $DOCKER_REPO:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
+  
+  build-deploy:
+    machine:
+      image: "ubuntu-2004:current"
+    steps:
+      - checkout
+      - run:
+          name: Installing AWS CLI
+          command: |
+            sudo apt-get update
+            sudo apt install python3-pip
+            sudo pip3 install awsebcli --upgrapde
+      - run: cd ./oc_lettings_site npm install && npm run build
+      - run: aws s3 sync ./oc_lettings_site/build s3://oclettings
+
+
 
 workflows:
   master:
@@ -49,12 +65,8 @@ workflows:
       - build-docker:
           requires:
             - build-test-linting
-      - aws-ecr/build-and-push-image: # Use the pre-defined `build-and-push-image` job
-          region: eu-north-1
-          repo: public.ecr.aws/r7q6p7l5/oclettings
-          profile-name: kraynn
-          requires:
-            - build-test-linting
+      - build-deploy
+
 
 
 
