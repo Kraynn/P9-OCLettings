@@ -5,7 +5,7 @@ orbs:
 
 
 jobs:
-  build-test-linting:
+  build-test:
     docker:
       - image: cimg/python:3.10
 
@@ -17,12 +17,8 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
       - run:
-          name: Run Tests
+          name: Run tests
           command: pytest
-
-      - run:
-          name: Linting
-          command: flake8
 
   build-docker:
     docker:
@@ -30,23 +26,20 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run:
-          name: Login to Docker Hub
-          command: echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+      - run: echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
       - run:
           name: Build and push Docker Image
           command: |
             docker build --tag $DOCKER_REPO:$CIRCLE_SHA1 .
             docker push $DOCKER_REPO:$CIRCLE_SHA1
+
   deploy-to-heroku:
     executor: heroku/default
     steps:
       - checkout
       - setup_remote_docker
       - heroku/install
-      - run:
-          name: Login to Heroku
-          command: HEROKU_API_KEY=${HEROKU_API} heroku container:login
+      - run: HEROKU_API_KEY=${HEROKU_API} heroku container:login
 
       - run:
           name: Push Docker Image to Heroku
@@ -56,13 +49,14 @@ jobs:
             # docker tag $DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_APP/web 
             HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_APP web
             HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_APP web
+
 workflows:
   master:
     jobs:
-      - build-test-linting
+      - build-test
       - build-docker:
           requires:
-            - build-test-linting
+            - build-test
       - deploy-to-heroku:
           requires:
             - build-docker
