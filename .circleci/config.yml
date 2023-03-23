@@ -53,9 +53,9 @@ jobs:
           command: |
             # echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
             # docker pull $DOCKER_REPO:$CIRCLE_SHA1
-            # docker tag $DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_NAME/web 
-            HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_NAME web
-            HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_NAME web
+            # docker tag $DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_APP/web 
+            HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_APP web
+            HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_APP web
 workflows:
   master:
     jobs:
