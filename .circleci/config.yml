@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  aws-ecr: circleci/aws-ecr@6.15.0
-
 jobs:
   build-test-linting:
     docker:
@@ -37,6 +34,27 @@ jobs:
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_REPO:$TAG
 
+  deploy-to-heroku:
+    executor: heroku/default
+    environment:
+      SENTRY_DSN: $SENTRY_DSN
+    steps:
+      - checkout
+      - setup_remote_docker
+      - heroku/install
+      - run:
+          name: Login to Heroku
+          command: HEROKU_API_KEY=${HEROKU_API} heroku container:login
+
+      - run:
+          name: Push Docker Image to Heroku
+          command: |
+            # echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+            # docker pull $DOCKER_REPO:$CIRCLE_SHA1
+            # docker tag $DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_APP/web 
+            HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_APP web
+            HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_APP web
+            
 workflows:
   master:
     jobs:
@@ -44,10 +62,10 @@ workflows:
       - build-docker:
           requires:
             - build-test-linting
-      - aws-ecr/build-and-push-image:
-          repo: oclus
-          tag: "latest, v0.1.${CIRCLE_BUILD_NUM}"
-          dockerfile: Dockerfile
-          path: .
-          requires: 
+      - deploy-to-heroku:
+          requires:
             - build-docker
+          filters:
+            branches:
+              only:
+                - master

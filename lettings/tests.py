@@ -26,14 +26,3 @@ def test_letting():
     result = client.get(reverse('lettings:letting', args=[letting.id]))
     assert result.status_code == 200
     assert b'<title>Test</title>' in result.content
-
-
-# @pytest.mark.django_db
-# def test_lettings():
-#     client = Client()
-#     lettings = Letting.objects.all()
-#     for letting in lettings:
-#         path = reverse('lettings:letting', args=[letting.id])
-#         response = client.get(path)
-#         assert response.status_code == 200
-#         assert 'letting.title' in response.content
