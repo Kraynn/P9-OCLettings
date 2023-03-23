@@ -3,10 +3,12 @@ version: 2.1
 orbs:
   heroku: circleci/heroku@2.0
 
+
 jobs:
   build-test-linting:
     docker:
       - image: cimg/python:3.10
+
     steps:
       - checkout
       - run:
@@ -17,30 +19,27 @@ jobs:
       - run:
           name: Run Tests
           command: pytest
+
       - run:
           name: Linting
           command: flake8
+
   build-docker:
     docker:
       - image: cimg/python:3.10
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.14
-          docker_layer_caching: true
-      - run: |
-          TAG=0.1.$CIRCLE_BUILD_NUM
-          docker build -t $DOCKER_REPO:$TAG .
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker push $DOCKER_REPO:$TAG
-
+      - setup_remote_docker
+      - run:
+          name: Login to Docker Hub
+          command: echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+      - run:
+          name: Build and push Docker Image
+          command: |
+            docker build --tag $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1 .
+            docker push $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1
   deploy-to-heroku:
     executor: heroku/default
-    environment:
-      SENTRY_DSN: $SENTRY_DSN
     steps:
       - checkout
       - setup_remote_docker
@@ -53,11 +52,10 @@ jobs:
           name: Push Docker Image to Heroku
           command: |
             # echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-            # docker pull $DOCKER_REPO:$CIRCLE_SHA1
-            # docker tag $DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_APP/web 
-            HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_APP web
-            HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_APP web
-            
+            # docker pull $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1
+            # docker tag $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_NAME/web 
+            HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_NAME web
+            HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_NAME web
 workflows:
   master:
     jobs:
@@ -67,8 +65,8 @@ workflows:
             - build-test-linting
       - deploy-to-heroku:
           requires:
-          - build-docker
+            - build-docker
           filters:
             branches:
               only:
-              - master
+                - master
