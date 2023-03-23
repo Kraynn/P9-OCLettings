@@ -59,15 +59,15 @@ jobs:
             HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_APP web
             
 workflows:
-    jobs:
-      - build-test-linting
-      - build-docker:
-          requires:
-            - build-test-linting
-      - deploy-to-heroku:
-          requires:
-            - build-docker
-          filters:
-            branches:
-              only:
-                - master
+  jobs:
+    - build-test-linting
+    - build-docker:
+        requires:
+          - build-test-linting
+    - deploy-to-heroku:
+        requires:
+          - build-docker
+        filters:
+          branches:
+            only:
+              - master
