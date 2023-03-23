@@ -36,8 +36,8 @@ jobs:
       - run:
           name: Build and push Docker Image
           command: |
-            docker build --tag $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1 .
-            docker push $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1
+            docker build --tag $DOCKER_REPO:$CIRCLE_SHA1 .
+            docker push $DOCKER_REPO:$CIRCLE_SHA1
   deploy-to-heroku:
     executor: heroku/default
     steps:
@@ -52,8 +52,8 @@ jobs:
           name: Push Docker Image to Heroku
           command: |
             # echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-            # docker pull $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1
-            # docker tag $DOCKER_USERNAME/$DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_NAME/web 
+            # docker pull $DOCKER_REPO:$CIRCLE_SHA1
+            # docker tag $DOCKER_REPO:$CIRCLE_SHA1 registry.heroku.com/$HEROKU_NAME/web 
             HEROKU_API_KEY=${HEROKU_API} heroku container:push --app $HEROKU_NAME web
             HEROKU_API_KEY=${HEROKU_API} heroku container:release --app $HEROKU_NAME web
 workflows:
