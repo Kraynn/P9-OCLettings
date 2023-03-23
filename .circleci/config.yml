@@ -1,7 +1,9 @@
 
 version: 2.1
+
 orbs:
   aws-ecr: circleci/aws-ecr@8.2.1
+
 jobs:
   build-test-linting:
     docker:
