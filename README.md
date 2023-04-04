@@ -80,22 +80,26 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 ### Tests & Linting
 
-> flake8
+> flake
+> 
 > pytest
 
 ### Heroku & Docker
 
-> Heroku
-Créer une application Heroku 
-Récupérer les variables d'environnement 
+Heroku
+> Créer une application Heroku 
+> 
+> Récupérer les variables d'environnement 
 
-> Docker
-Créer un répertoire Docker
-Récupérer les variables d'environnement
+Docker
+> Créer un répertoire Docker
+> 
+> Récupérer les variables d'environnement
 
 Une fois l'image enregistré, récuperer et executer l'image docker avec l'application desktop ou lancer la commande suivante:
 > docker run --pull always -p 8000:8000 --name APP username/image:tag 
-(example: docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51)
+>
+>(example: docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51)
 
 ### CircleCi
 
@@ -114,5 +118,5 @@ Créer son projet et ajouter les variables d'environnement suivantes dans les pa
 ### Sentry
 
 Créer un projet Sentry
-Suivre les instructions d'installation pour un projet python django dans le fichier settings.py
+> Suivre les instructions d'installation pour un projet python django dans le fichier settings.py
 
