@@ -92,6 +92,8 @@ Une fois l'image enregistré, récuperer et executer l'image docker avec l'appli
 >(example: docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51)
 >
 
+**************
+
 Heroku
 > Créer une application Heroku 
 > 
