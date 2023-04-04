@@ -83,6 +83,7 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 > flake
 > 
 > pytest
+> 
 
 ### Heroku & Docker
 
@@ -100,6 +101,7 @@ Une fois l'image enregistré, récuperer et executer l'image docker avec l'appli
 > docker run --pull always -p 8000:8000 --name APP username/image:tag 
 >
 >(example: docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51)
+>
 
 ### CircleCi
 
