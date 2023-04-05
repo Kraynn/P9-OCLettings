@@ -78,5 +78,45 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 ****
 
-Docker :
-> docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51 
+### Docker & Heroku  
+
+Docker
+> Créer un répertoire Docker
+> 
+> Récupérer les variables d'environnement
+
+
+Une fois l'image enregistré, récuperer et executer l'image docker avec l'application desktop ou lancer la commande suivante:
+> docker run --pull always -p 8000:8000 --name APP username/image:tag 
+>
+>(example: docker run --pull always -p 8000:8000 --name APP kraynn/ocl:0.1.51)
+>
+
+----------------------
+
+Heroku
+> Créer une application Heroku 
+> 
+> Récupérer les variables d'environnement 
+> 
+
+### CircleCi
+
+Récuperer les fichiers Dockerfile et config.yml au sein du dossier .config
+Créer son projet et ajouter les variables d'environnement suivantes dans les paramètres du projet:
+> DOCKER_USERNAME
+> 
+> DOCKER_PASSWORD
+> 
+> DOCKER_REPO
+> 
+> HEROKU_API
+> 
+> HEROKU_APP
+
+### Sentry
+
+Créer un projet Sentry
+> Configurer le fichier settings.py de l'application en suivant les instructions pour un projet python django
+> 
+
